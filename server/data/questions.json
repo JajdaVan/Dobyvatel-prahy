@@ -1,0 +1,602 @@
+[
+  {
+    "id": 1,
+    "question": "Která pražská čtvrť je známá jako \"pražský Montmartre\" díky své bohémské atmosféře a úzkým uličkám?",
+    "type": "choice",
+    "options": ["Smíchov", "Nový Svět (Hradčany)", "Žižkov", "Karlín"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 2,
+    "question": "Jak se jmenuje nejstarší dochovaný most přes řeku Vltavu v Praze?",
+    "type": "choice",
+    "options": ["Mánesův most", "Jirasův most", "Karlův most", "Most Legií"],
+    "correct": 2,
+    "difficulty": 1
+  },
+  {
+    "id": 3,
+    "question": "Ve které pražské části se nachází největší fotbalový stadion v ČR (Stadion Evžena Rošického a Fortuna Arena)?",
+    "type": "choice",
+    "options": ["Vršovice", "Letná", "Libeň", "Střešovice"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 4,
+    "question": "Který světoznámý spisovatel, autor románu \"Proces\", se narodil na Starém Městě?",
+    "type": "choice",
+    "options": ["Jan Neruda", "Jaroslav Hašek", "Franz Kafka", "Karel Čapek"],
+    "correct": 2,
+    "difficulty": 1
+  },
+  {
+    "id": 5,
+    "question": "Která moderní stavba na Jiráskově náměstí je inspirována slavným tanečním párem Fredem Astairem a Ginger Rogersovou?",
+    "type": "choice",
+    "options": ["Žižkovská věž", "Tančící dům", "Kongresové centrum", "Národní technická knihovna"],
+    "correct": 1,
+    "difficulty": 1
+  },
+  {
+    "id": 6,
+    "question": "Jak se jmenuje vrch, na kterém stojí zmenšenina pařížské Eiffelovy věže?",
+    "type": "choice",
+    "options": ["Vítkov", "Vyšehrad", "Petřín", "Letná"],
+    "correct": 2,
+    "difficulty": 1
+  },
+  {
+    "id": 7,
+    "question": "Který český panovník nechal postavit Nové Město pražské?",
+    "type": "choice",
+    "options": ["Rudolf II.", "Václav IV.", "Karel IV.", "Přemysl Otakar II."],
+    "correct": 2,
+    "difficulty": 1
+  },
+  {
+    "id": 8,
+    "question": "Ve které části Prahy najdete slavnou \"Uličku u Průhonu\" a historické jatky, dnes sídlo Pražské tržnice?",
+    "type": "choice",
+    "options": ["Holešovice", "Bubeneč", "Libeň", "Vysočany"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 9,
+    "question": "Který filmový festival se každoročně zaměřuje na dokumentární filmy o lidských právech a má v Praze své hlavní sídlo?",
+    "type": "choice",
+    "options": ["Febiofest", "Jeden svět", "Signal Festival", "Mezinárodní filmový festival Praha"],
+    "correct": 1,
+    "difficulty": 3
+  },
+  {
+    "id": 10,
+    "question": "Jaká postava se každou hodinu objevuje v horním okně Staroměstského orloje jako první?",
+    "type": "choice",
+    "options": ["Smrtka", "Lakomec", "Svatý Petr", "Marnivec"],
+    "correct": 2,
+    "difficulty": 3
+  },
+  {
+    "id": 11,
+    "question": "Která pražská čtvrť byla v roce 2002 nejvíce postižena ničivými povodněmi?",
+    "type": "choice",
+    "options": ["Karlín", "Vinohrady", "Prosek", "Chodov"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 12,
+    "question": "Která hokejová hala v Praze (Libeň) hostí domácí zápasy týmu HC Sparta Praha?",
+    "type": "choice",
+    "options": ["Tipsport Arena", "O2 arena", "Eden Aréna", "Sportovní hala Fortuna"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 13,
+    "question": "Jak se jmenuje největší park v Praze, který dříve sloužil jako královská obora?",
+    "type": "choice",
+    "options": ["Riegrovy sady", "Letenské sady", "Stromovka", "Divoká Šárka"],
+    "correct": 2,
+    "difficulty": 1
+  },
+  {
+    "id": 14,
+    "question": "Který slavný umělec vytvořil \"Miminka\" (Babies) šplhající po Žižkovské televizní věži?",
+    "type": "choice",
+    "options": ["David Černý", "Olbram Zoubek", "Jaroslav Róna", "František Skála"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 15,
+    "question": "Která linka pražského metra má žlutou barvu?",
+    "type": "choice",
+    "options": ["Linka A", "Linka B", "Linka C", "Linka D"],
+    "correct": 1,
+    "difficulty": 1
+  },
+  {
+    "id": 16,
+    "question": "Jak se jmenuje historické opevnění a areál nad Vltavou, kde jsou pohřbeny významné české osobnosti na Slavíně?",
+    "type": "choice",
+    "options": ["Pražský hrad", "Vyšehrad", "Špilberk", "Strahov"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 17,
+    "question": "Ve kterém roce byla Praha hlavním městem Svaté říše římské za vlády Rudolfa II.?",
+    "type": "choice",
+    "options": ["1415", "1583", "1620", "1741"],
+    "correct": 1,
+    "difficulty": 3
+  },
+  {
+    "id": 18,
+    "question": "Která budova v Praze je přezdívána \"Zlatá kaplička\"?",
+    "type": "choice",
+    "options": ["Státní opera", "Rudolfinum", "Národní divadlo", "Obecní dům"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 19,
+    "question": "Která pražská část je známá svou \"Vietnamčtvrtí\" a tržnicí Sapa?",
+    "type": "choice",
+    "options": ["Libuš / Písnice", "Modřany", "Kunratice", "Braník"],
+    "correct": 0,
+    "difficulty": 3
+  },
+  {
+    "id": 20,
+    "question": "Jak se jmenuje nejvýznamnější barokní chrám na Malé Straně?",
+    "type": "choice",
+    "options": ["Chrám svatého Víta", "Kostel svatého Mikuláše", "Kostel svatého Jiljí", "Loreta"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 21,
+    "question": "V kterém roce bylo založeno Nové Město pražské Karlem IV.?",
+    "type": "estimate",
+    "correct": 1348,
+    "unit": "rok",
+    "difficulty": 3
+  },
+  {
+    "id": 22,
+    "question": "Kolik věží má oficiálně Praha podle historického přívlastku \"Stověžatá\" (přestože jich je dnes přes 500)?",
+    "type": "estimate",
+    "correct": 100,
+    "unit": "věží",
+    "difficulty": 1
+  },
+  {
+    "id": 23,
+    "question": "V kterém roce byl zahájen provoz první linky pražského metra (úsek C: Florenc – Kačerov)?",
+    "type": "estimate",
+    "correct": 1974,
+    "unit": "rok",
+    "difficulty": 2
+  },
+  {
+    "id": 24,
+    "question": "Jaká je výška Žižkovské televizní věže v metrech (je to nejvyšší stavba v Praze)?",
+    "type": "estimate",
+    "correct": 216,
+    "unit": "metrů",
+    "difficulty": 2
+  },
+  {
+    "id": 25,
+    "question": "V kterém roce se na Strahovském stadionu konal poslední Všesokolský slet před jeho zákazem komunisty (též rok únorového převratu)?",
+    "type": "estimate",
+    "correct": 1948,
+    "unit": "rok",
+    "difficulty": 3
+  },
+  {
+    "id": 26,
+    "question": "Který fotbalový tým ovládl 316. pražské derby? (8. 3. 2026)",
+    "type": "choice",
+    "options": ["SK Slavia Praha", "Bohemians Praha 1905", "AC Sparta Praha", "Dukla Praha"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 27,
+    "question": "Ve které pražské čtvrti byl proveden atentát na zastupujícího říšského protektora Reinharda Heydricha?",
+    "type": "choice",
+    "options": ["Nusle", "Vinohrady", "Libeň", "Bohnice"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 28,
+    "question": "Jak se jmenuje budova, ve které sídlí Ministerstvo zahraničních věcí České republiky?",
+    "type": "choice",
+    "options": ["Strakova akademie", "Černínský palác", "Petschkův palác", "Pražský hrad"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 29,
+    "question": "Který z těchto pivovarů vaří pivo v Praze?",
+    "type": "choice",
+    "options": ["Velkopopovický Kozel", "Staropramen", "Bernard", "Radegast"],
+    "correct": 1,
+    "difficulty": 1
+  },
+  {
+    "id": 30,
+    "question": "Který pražský klub je posledním vítězem hokejové extraligy?",
+    "type": "choice",
+    "options": ["HC Sparta Praha", "HC Kobra Praha", "HC Slavia Praha", "HC Hvězda Praha"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 31,
+    "question": "Který fotbalový tým vyhrál v sezóně 2024/2025 Pražský přebor?",
+    "type": "choice",
+    "options": ["AFK Slavoj Podolí", "ABC Braník", "FC Slavoj Vyšehrad", "TJ Spoje Praha"],
+    "correct": 3,
+    "difficulty": 3
+  },
+  {
+    "id": 32,
+    "question": "Ve které ulici vznikl 1. pražský McDonald's?",
+    "type": "choice",
+    "options": ["Vodičkova", "Korunovační", "Ječná", "Vinohradská"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 33,
+    "question": "Ve které ulici se nachází stadion týmu AC Sparta Praha?",
+    "type": "choice",
+    "options": ["U plynárny", "Průmyslová", "Milady Horákové", "Bartolomějská"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 34,
+    "question": "Jak se jmenuje aktuální pražský primátor/ka? (v úřadě od 2023)",
+    "type": "choice",
+    "options": ["Pavel Bém", "Adriana Krnáčová", "Zdeněk Hřib", "Bohuslav Svoboda"],
+    "correct": 3,
+    "difficulty": 1
+  },
+  {
+    "id": 35,
+    "question": "V jaké budově sídlí Úřad Vlády ČR?",
+    "type": "choice",
+    "options": ["Strakova akademie", "Národní dům na Vinohradech", "Thunovský palác", "Valdštejnský palác"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 36,
+    "question": "Jak se jmenoval 1. primátor hlavního města Prahy?",
+    "type": "choice",
+    "options": ["Josef Lux", "Alois Říha", "Edvard Beneš", "Karel Baxa"],
+    "correct": 3,
+    "difficulty": 3
+  },
+  {
+    "id": 37,
+    "question": "Pomník jakého diktátora byl postaven v padesátých letech na Letné?",
+    "type": "choice",
+    "options": ["Adolfa Hitlera", "Josifa Stalina", "Mao Ce-tunga", "Vladimira Putina"],
+    "correct": 1,
+    "difficulty": 1
+  },
+  {
+    "id": 38,
+    "question": "Jaké barvy obsahuje vlajka Prahy?",
+    "type": "choice",
+    "options": ["Červená, bílá, modrá", "Žlutá, červená", "Zelená, modrá", "Modrá, žlutá"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 39,
+    "question": "Ve které pražské čtvrti leží Zoologická zahrada Praha?",
+    "type": "choice",
+    "options": ["Troja", "Smíchov", "Letná", "Holešovice"],
+    "correct": 0,
+    "difficulty": 1
+  },
+  {
+    "id": 40,
+    "question": "Kde má sídlo Česká televize?",
+    "type": "choice",
+    "options": ["V ulici Vinohradská", "Na Žižkově", "Na Petřině", "Na Kavčích horách"],
+    "correct": 3,
+    "difficulty": 2
+  },
+  {
+    "id": 41,
+    "question": "Socha jaké postavy z historie stojí na Václavském náměstí?",
+    "type": "choice",
+    "options": ["Jana Žižky", "Karla IV.", "sv. Václava", "Přemysla Otakara II."],
+    "correct": 2,
+    "difficulty": 1
+  },
+  {
+    "id": 42,
+    "question": "Jak se jmenuje rotunda, která stojí na Vyšehradě?",
+    "type": "choice",
+    "options": ["Rotunda sv. Barbory", "Rotunda Nanebevzetí Panny Marie", "Rotunda Jana Křtitele", "Rotunda sv. Martina"],
+    "correct": 3,
+    "difficulty": 2
+  },
+  {
+    "id": 43,
+    "question": "Jaké z následujících měst je nejblíže Praze vzdušnou čarou?",
+    "type": "choice",
+    "options": ["Berlín", "Bratislava", "Vídeň", "Varšava"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 44,
+    "question": "S jakým městem si spojenečtí letci při bombardování v roce 1945 spletli Prahu?",
+    "type": "choice",
+    "options": ["Mnichov", "Plzeň", "Drážďany", "Berlín"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 45,
+    "question": "Jak se jmenuje největší ostrov, který leží v Praze, na Vltavě?",
+    "type": "choice",
+    "options": ["Císařský ostrov", "Střelecký ostrov", "Dětský ostrov", "Slovanský ostrov"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 46,
+    "question": "Jak se jmenuje slavná pražská porodnice, která sídlí v historické novogotické budově u hradeb na Praze 2?",
+    "type": "choice",
+    "options": ["Podolí", "Motol", "U Apolináře", "Bulovka"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 47,
+    "question": "Který významný český sochař je autorem pomníku mistra Jana Husa na Staroměstském náměstí?",
+    "type": "choice",
+    "options": ["Josef Václav Myslbek", "Ladislav Šaloun", "David Černý", "Olbram Zoubek"],
+    "correct": 1,
+    "difficulty": 3
+  },
+  {
+    "id": 48,
+    "question": "Ve které pražské čtvrti se nachází filmová studia Barrandov, přezdívaná \"evropský Hollywood\"?",
+    "type": "choice",
+    "options": ["Hlubočepy", "Braník", "Radotín", "Stodůlky"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 49,
+    "question": "Jak se jmenuje moderní lávka pro pěší a cyklisty, která spojuje Holešovice, ostrov Štvanici a Karlín?",
+    "type": "choice",
+    "options": ["Trojská lávka", "HolKa", "Karlínská spojka", "Vltavský mostek"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 50,
+    "question": "Která pražská budova je největším uzavřeným hradním komplexem na světě?",
+    "type": "choice",
+    "options": ["Vyšehrad", "Pražský hrad", "Průmyslový palác", "Strahovský klášter"],
+    "correct": 1,
+    "difficulty": 1
+  },
+  {
+    "id": 51,
+    "question": "Jak se jmenuje historická budova na Újezdu, ve které sídlí Muzeum hudby a dříve sloužila jako kostel?",
+    "type": "choice",
+    "options": ["Chrám svatého Mikuláše", "Kostel svaté Máří Magdaleny", "Betlémská kaple", "Kostel svatého Salvátora"],
+    "correct": 1,
+    "difficulty": 3
+  },
+  {
+    "id": 52,
+    "question": "Který slavný hřbitov se nachází na Žižkově přímo pod televizní věží?",
+    "type": "choice",
+    "options": ["Olšanský hřbitov", "Starý židovský hřbitov na Žižkově", "Vinohradský hřbitov", "Vyšehradský hřbitov"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 53,
+    "question": "Ve které pražské části najdete unikátní technickou památku – Starou čistírnu odpadních vod v Bubenči?",
+    "type": "choice",
+    "options": ["Dejvice", "Praha 6", "Praha 7", "Praha 8"],
+    "correct": 1,
+    "difficulty": 3
+  },
+  {
+    "id": 54,
+    "question": "Jak se jmenuje nejstarší česká univerzita, založená v Praze roku 1348?",
+    "type": "choice",
+    "options": ["Masarykova univerzita", "České vysoké učení technické", "Univerzita Karlova", "Vysoká škola ekonomická"],
+    "correct": 2,
+    "difficulty": 1
+  },
+  {
+    "id": 55,
+    "question": "Která pražská pasáž v centru města je známá sochou koně od Davida Černého, na kterém sedí sv. Václav obráceně?",
+    "type": "choice",
+    "options": ["Pasáž Světozor", "Pasáž Lucerna", "Pasáž Černá růže", "Pasáž Koruna"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 56,
+    "question": "Jak se jmenuje pražská čtvrť, ve které se nachází přírodní park Divoká Šárka?",
+    "type": "choice",
+    "options": ["Vokovice / Liboc", "Ruzyně", "Břevnov", "Suchdol"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 57,
+    "question": "Který sportovní klub sídlí na Julisce v Dejvicích a je historicky spojen s armádou?",
+    "type": "choice",
+    "options": ["AC Sparta Praha", "FK Dukla Praha", "FK Viktoria Žižkov", "Bohemians Praha 1905"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 58,
+    "question": "Jak se jmenuje barokní palác na Malé Straně, který má rozlehlou zahradu a je sídlem Senátu Parlamentu ČR?",
+    "type": "choice",
+    "options": ["Šternberský palác", "Valdštejnský palác", "Nostický palác", "Kolowratský palác"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 59,
+    "question": "Ve které ulici na Starém Městě najdete nejdražší obchody s luxusní módou?",
+    "type": "choice",
+    "options": ["Celetná", "Na Příkopě", "Pařížská", "Železná"],
+    "correct": 2,
+    "difficulty": 1
+  },
+  {
+    "id": 60,
+    "question": "Která pražská čtvrť byla dříve samostatným městem s názvem \"Královské Vinohrady\"?",
+    "type": "choice",
+    "options": ["Žižkov", "Vinohrady", "Vršovice", "Nusle"],
+    "correct": 1,
+    "difficulty": 1
+  },
+  {
+    "id": 61,
+    "question": "Jak se jmenuje nejstarší klášter v Praze (a v celých Čechách), založený roku 993?",
+    "type": "choice",
+    "options": ["Strahovský klášter", "Emauzy", "Břevnovský klášter", "Anežský klášter"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 62,
+    "question": "Který most v Praze je známý svými sochami od sochaře Josefa Václava Myslbeka (přenesenými z Vyšehradského mostu)?",
+    "type": "choice",
+    "options": ["Karlův most", "Palackého most", "Mánesův most", "Jiráskův most"],
+    "correct": 1,
+    "difficulty": 3
+  },
+  {
+    "id": 63,
+    "question": "Ve které budově se nachází největší varhany v České republice?",
+    "type": "choice",
+    "options": ["Katedrála svatého Víta", "Bazilika svatého Jakuba Většího", "Kostel svaté Ludmily", "Obecní dům"],
+    "correct": 1,
+    "difficulty": 3
+  },
+  {
+    "id": 64,
+    "question": "Jak se jmenuje pražský festival světla, který každoročně v říjnu rozzáří ulice Prahy?",
+    "type": "choice",
+    "options": ["Signal Festival", "Light Up Prague", "Designblok", "Pražské jaro"],
+    "correct": 0,
+    "difficulty": 1
+  },
+  {
+    "id": 65,
+    "question": "Která pražská čtvrť je známá svými industriálními halami, kde se dnes konají techno party a kulturní akce (např. prostor Fuchs2)?",
+    "type": "choice",
+    "options": ["Holešovice / Štvanice", "Libeň", "Smíchov", "Vysočany"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 66,
+    "question": "Kolik je v Praze veřejných vysokých škol?",
+    "type": "estimate",
+    "correct": 8,
+    "unit": "škol",
+    "difficulty": 2
+  },
+  {
+    "id": 67,
+    "question": "Kolik stanic mají dohromady všechny linky pražského metra? (k roku 2026)",
+    "type": "estimate",
+    "correct": 61,
+    "unit": "stanic",
+    "difficulty": 2
+  },
+  {
+    "id": 68,
+    "question": "Kolik soch je na Karlově mostě?",
+    "type": "estimate",
+    "correct": 30,
+    "unit": "soch",
+    "difficulty": 2
+  },
+  {
+    "id": 69,
+    "question": "Kolik stojí jednodenní jízdenka na pražské MHD? (běžná jízdenka, 2026)",
+    "type": "estimate",
+    "correct": 150,
+    "unit": "Kč",
+    "difficulty": 1
+  },
+  {
+    "id": 70,
+    "question": "Kolik je v Praze fotbalových klubů?",
+    "type": "estimate",
+    "correct": 135,
+    "unit": "klubů",
+    "difficulty": 3
+  },
+  {
+    "id": 71,
+    "question": "V kterém roce byl v Praze spáchán atentát na Reinharda Heydricha (operace Anthropoid)?",
+    "type": "estimate",
+    "correct": 1942,
+    "unit": "rok",
+    "difficulty": 1
+  },
+  {
+    "id": 72,
+    "question": "Kolik let trvala stavba katedrály svatého Víta na Pražském hradě (od položení základního kamene 1344 do dostavby 1929)?",
+    "type": "estimate",
+    "correct": 585,
+    "unit": "let",
+    "difficulty": 3
+  },
+  {
+    "id": 73,
+    "question": "Kolik metrů měří Petřínská rozhledna (bez antén)?",
+    "type": "estimate",
+    "correct": 63.5,
+    "unit": "metrů",
+    "difficulty": 2
+  },
+  {
+    "id": 74,
+    "question": "V kterém roce se v Praze konaly jediné olympijské hry pro neslyšící (Deaflympiáda)?",
+    "type": "estimate",
+    "correct": 2025,
+    "unit": "rok",
+    "difficulty": 2
+  },
+  {
+    "id": 75,
+    "question": "Kolik metrů pod zemí se nachází nejhlubší stanice pražského metra (Náměstí Míru)?",
+    "type": "estimate",
+    "correct": 53,
+    "unit": "metrů",
+    "difficulty": 2
+  }
+]

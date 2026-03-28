@@ -1,0 +1,17 @@
+{
+  "name": "kralove-sidliste",
+  "version": "1.0.0",
+  "description": "Multiplayerová webová hra – Králové Sídliště",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["game", "quiz", "prague", "multiplayer"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0",
+    "socket.io": "^4.7.5"
+  }
+}

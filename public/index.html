@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Králové Sídliště – multiplayerová kvízová hra o pražských částech">
+  <title>Králové Sídliště</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="game-header">
+      <h1>🏰 Králové Sídliště</h1>
+      <p class="subtitle">Dobij pražské čtvrtě a ovládni celé město!</p>
+    </header>
+
+    <!-- ===== LOBBY SCREEN ===== -->
+    <div id="lobby-screen">
+
+      <!-- Step 1: Name + Create/Join -->
+      <div id="lobby-menu" class="lobby-card">
+        <h2 class="lobby-card-title">Vítej, hráči!</h2>
+        <div class="lobby-field">
+          <label for="player-name-input">Tvoje jméno</label>
+          <input type="text" id="player-name-input" placeholder="Zadej přezdívku…" maxlength="20" autocomplete="off" />
+        </div>
+        <div class="lobby-actions">
+          <button id="btn-create-room" class="btn-primary">
+            <span class="btn-icon">➕</span> Vytvořit hru
+          </button>
+          <div class="lobby-divider"><span>nebo</span></div>
+          <div class="lobby-join-row">
+            <input type="text" id="join-code-input" placeholder="KÓD" maxlength="4" autocomplete="off" />
+            <button id="btn-join-room" class="btn-secondary">Připojit se</button>
+          </div>
+        </div>
+        <p id="lobby-error" class="lobby-error"></p>
+      </div>
+
+      <!-- Step 2: Waiting room (shown after create/join) -->
+      <div id="lobby-room" class="lobby-card" style="display:none;">
+        <div class="room-code-display">
+          <span class="room-code-label">Kód místnosti</span>
+          <span id="room-code-value" class="room-code-value">----</span>
+        </div>
+        <h3 class="lobby-card-subtitle">Připojení hráči</h3>
+        <ul id="lobby-player-list" class="lobby-player-list">
+          <!-- Dynamicky generováno -->
+        </ul>
+        <p class="lobby-capacity"><span id="lobby-player-count">0</span> / 3 hráčů</p>
+        <button id="btn-start-game" class="btn-primary" style="display:none; margin-top:0.8rem;">🎮 Spustit hru</button>
+        <button id="btn-leave-room" class="btn-outline">⬅ Opustit místnost</button>
+      </div>
+
+    </div>
+
+    <!-- ===== GAME SCREEN (hidden until game starts) ===== -->
+    <div id="game-screen" style="display:none;">
+
+      <!-- Map Container -->
+      <div id="map-container">
+        <div id="map-wrapper">
+          <svg id="prague-map" viewBox="0 0 1000 750" xmlns="http://www.w3.org/2000/svg" aria-label="Mapa Prahy">
+            <defs>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="shadow">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.5"/>
+              </filter>
+            </defs>
+
+            <!-- Praha 1 – Staré Město / Malá Strana (centrum) -->
+            <path id="praha-1" class="district" data-name="Praha 1" data-district="1"
+                  d="M 440,340 L 470,310 L 510,305 L 540,320 L 545,355 L 530,380 L 500,390 L 465,385 L 445,365 Z" />
+            <!-- Praha 2 – Nové Město / Vinohrady -->
+            <path id="praha-2" class="district" data-name="Praha 2" data-district="2"
+                  d="M 545,355 L 540,320 L 570,300 L 610,310 L 630,340 L 625,375 L 595,395 L 560,395 L 530,380 Z" />
+            <!-- Praha 3 – Žižkov -->
+            <path id="praha-3" class="district" data-name="Praha 3" data-district="3"
+                  d="M 610,310 L 570,300 L 580,265 L 620,250 L 665,260 L 685,290 L 670,330 L 630,340 Z" />
+            <!-- Praha 4 – Nusle / Krč / Braník -->
+            <path id="praha-4" class="district" data-name="Praha 4" data-district="4"
+                  d="M 465,385 L 500,390 L 530,380 L 560,395 L 595,395 L 625,375 L 650,410 L 640,470 L 590,510 L 520,500 L 460,470 L 440,420 Z" />
+            <!-- Praha 5 – Smíchov / Košíře / Motol -->
+            <path id="praha-5" class="district" data-name="Praha 5" data-district="5"
+                  d="M 280,330 L 330,300 L 380,305 L 420,320 L 440,340 L 445,365 L 465,385 L 440,420 L 400,450 L 340,440 L 280,410 L 250,370 Z" />
+            <!-- Praha 6 – Dejvice / Bubeneč / Střešovice -->
+            <path id="praha-6" class="district" data-name="Praha 6" data-district="6"
+                  d="M 200,200 L 270,170 L 340,180 L 390,210 L 400,250 L 380,305 L 330,300 L 280,330 L 250,310 L 210,270 L 190,230 Z" />
+            <!-- Praha 7 – Holešovice / Troja -->
+            <path id="praha-7" class="district" data-name="Praha 7" data-district="7"
+                  d="M 390,210 L 340,180 L 370,150 L 420,130 L 480,140 L 510,175 L 500,220 L 470,260 L 440,280 L 420,320 L 380,305 L 400,250 Z" />
+            <!-- Praha 8 – Karlín / Libeň / Kobylisy -->
+            <path id="praha-8" class="district" data-name="Praha 8" data-district="8"
+                  d="M 480,140 L 530,120 L 590,130 L 640,160 L 650,210 L 620,250 L 580,265 L 570,300 L 540,320 L 510,305 L 470,310 L 440,280 L 470,260 L 500,220 L 510,175 Z" />
+            <!-- Praha 9 – Vysočany / Prosek -->
+            <path id="praha-9" class="district" data-name="Praha 9" data-district="9"
+                  d="M 640,160 L 700,155 L 760,180 L 780,220 L 760,260 L 720,280 L 685,290 L 665,260 L 620,250 L 650,210 Z" />
+            <!-- Praha 10 – Vršovice / Strašnice -->
+            <path id="praha-10" class="district" data-name="Praha 10" data-district="10"
+                  d="M 630,340 L 670,330 L 685,290 L 720,280 L 760,300 L 780,340 L 770,390 L 730,420 L 690,430 L 650,410 L 625,375 Z" />
+            <!-- Praha 11 – Jižní Město / Háje -->
+            <path id="praha-11" class="district" data-name="Praha 11" data-district="11"
+                  d="M 520,500 L 590,510 L 640,470 L 690,430 L 730,420 L 750,460 L 730,520 L 680,560 L 610,570 L 540,550 L 500,530 Z" />
+            <!-- Praha 12 – Modřany / Komořany -->
+            <path id="praha-12" class="district" data-name="Praha 12" data-district="12"
+                  d="M 400,450 L 440,420 L 460,470 L 520,500 L 500,530 L 540,550 L 510,590 L 440,600 L 380,580 L 350,530 L 360,480 Z" />
+            <!-- Praha 13 – Stodůlky / Lužiny -->
+            <path id="praha-13" class="district" data-name="Praha 13" data-district="13"
+                  d="M 150,350 L 200,320 L 250,310 L 280,330 L 250,370 L 280,410 L 260,460 L 210,480 L 150,460 L 120,410 Z" />
+            <!-- Praha 14 – Černý Most / Kyje -->
+            <path id="praha-14" class="district" data-name="Praha 14" data-district="14"
+                  d="M 760,180 L 830,200 L 880,240 L 870,290 L 840,330 L 800,340 L 780,340 L 760,300 L 720,280 L 760,260 L 780,220 Z" />
+            <!-- Praha 15 – Hostivař / Horní Měcholupy -->
+            <path id="praha-15" class="district" data-name="Praha 15" data-district="15"
+                  d="M 780,340 L 800,340 L 840,330 L 860,370 L 850,420 L 810,460 L 750,460 L 730,420 L 770,390 Z" />
+
+            <!-- Řeka Vltava -->
+            <path class="river" d="M 420,130 C 430,180 410,230 430,280 C 450,330 440,360 460,400 C 470,430 450,470 460,510 C 470,550 450,590 440,620" />
+          </svg>
+        </div>
+
+        <!-- ===== HUD Overlay ===== -->
+        <!-- Scoreboard Panel (top-left) -->
+        <div id="hud-scoreboard" class="hud-panel hud-top-left">
+          <h3 class="hud-panel-title">🏆 Skóre</h3>
+          <ul class="scoreboard-list" id="game-scoreboard-list">
+            <!-- Dynamicky z lobby -->
+          </ul>
+        </div>
+
+
+
+        <!-- District Info Tooltip -->
+        <div id="district-tooltip" class="tooltip hidden">
+          <span id="tooltip-name"></span>
+        </div>
+      </div>
+
+      <!-- Notification Toasts -->
+      <div id="game-notifications"></div>
+
+      <!-- District Info Panel -->
+      <div id="info-panel" class="glass-panel hidden">
+        <h2 id="panel-district-name"></h2>
+        <p id="panel-district-status">Nezabráno</p>
+        <button id="panel-close-btn" class="btn-close">✕</button>
+      </div>
+
+    </div><!-- /game-screen -->
+
+    <!-- ===== FULLSCREEN QUIZ OVERLAY ===== -->
+    <div id="quiz-overlay" style="display:none;">
+      <div class="quiz-overlay-card">
+        <div class="quiz-overlay-header">
+          <span class="quiz-overlay-district-tag">📍 Otázka</span>
+          <div class="quiz-overlay-timer">
+            <div class="timer-ring">
+              <svg class="timer-svg" viewBox="0 0 80 80">
+                <circle class="timer-track" cx="40" cy="40" r="34" />
+                <circle class="timer-progress" cx="40" cy="40" r="34"
+                        stroke-dasharray="213.6"
+                        stroke-dashoffset="0" />
+              </svg>
+              <span class="timer-text">15</span>
+            </div>
+            <span class="timer-label">sekund</span>
+          </div>
+        </div>
+        <p class="quiz-overlay-question">Čekám na otázku…</p>
+        <!-- Attack battle score tracker (shown during attack phase) -->
+        <div class="attack-battle-tracker" style="display:none;">
+          <div class="battle-player battle-attacker">
+            <span class="battle-label">⚔️ Útočník</span>
+            <span class="battle-name" id="battle-attacker-name">—</span>
+            <span class="battle-score" id="battle-attacker-score">0</span>
+          </div>
+          <div class="battle-vs">VS</div>
+          <div class="battle-player battle-defender">
+            <span class="battle-label">🛡️ Obránce</span>
+            <span class="battle-name" id="battle-defender-name">—</span>
+            <span class="battle-score" id="battle-defender-score">0</span>
+          </div>
+        </div>
+        <div class="quiz-overlay-progress">
+          <div class="quiz-progress-bar"></div>
+        </div>
+        <!-- Choice answers (4 buttons) -->
+        <div class="quiz-overlay-answers"></div>
+        <!-- Estimate input (number field + submit) -->
+        <div class="quiz-overlay-estimate" style="display:none;">
+          <div class="estimate-input-row">
+            <input type="number" class="estimate-input" id="estimate-input" placeholder="Tvůj tip…" autocomplete="off" />
+            <span class="estimate-unit" id="estimate-unit"></span>
+          </div>
+          <button class="btn-primary estimate-submit-btn" id="estimate-submit-btn">📤 Odeslat tip</button>
+          <p class="estimate-result" id="estimate-result" style="display:none;"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ATTACK SELECT OVERLAY ===== -->
+    <div id="attack-select-overlay" style="display:none;">
+      <div class="attack-select-card">
+        <h2 class="attack-select-title">⚔️ Vyber čtvrť k útoku!</h2>
+        <p class="attack-select-subtitle">Klikni na čtvrť protivníka na mapě</p>
+        <p class="attack-select-attacker" id="attack-select-attacker"></p>
+        <div class="attack-select-timer">
+          <span id="attack-select-countdown">15</span>s
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ATTACK RESULT OVERLAY ===== -->
+    <div id="attack-result-overlay" style="display:none;">
+      <div class="attack-result-card">
+        <h2 class="attack-result-title" id="attack-result-title"></h2>
+        <p class="attack-result-detail" id="attack-result-detail"></p>
+      </div>
+    </div>
+
+    <!-- ===== GAME-OVER OVERLAY ===== -->
+    <div id="gameover-overlay" class="gameover-overlay" style="display:none;">
+      <div class="gameover-card">
+        <h2 class="gameover-title">🏆 Konec hry!</h2>
+        <p id="gameover-reason" class="gameover-reason"></p>
+
+        <div id="gameover-podium" class="gameover-podium">
+          <!-- Dynamicky generováno -->
+        </div>
+
+        <button id="btn-back-lobby" class="btn-primary" style="margin-top:1.5rem;">⬅ Zpět do lobby</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Socket.io klient (automaticky servírován serverem) -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>
