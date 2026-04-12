@@ -3,7 +3,8 @@ const GameManager = require('./game/GameManager');
 const questions = require('./data/questions.json');
 
 const gameManager = new GameManager();
-const ROUND_TIME = 15000; // 15 sekund na odpověď
+const ROUND_TIME = 15000;       // 15 sekund na odpověď
+const SELECTION_TIME = 25000;    // 25 sekund na výběr území
 
 module.exports = function setupSocket(io) {
   io.on('connection', (socket) => {
@@ -74,6 +75,71 @@ module.exports = function setupSocket(io) {
 
       // Spustit první kolo (s krátkým zpožděním pro animaci)
       setTimeout(() => startNextRound(code), 1500);
+    });
+
+    // ============================
+    // HRA: Restart hry (stejní hráči)
+    // ============================
+    socket.on('restart-game', (callback) => {
+      const found = gameManager.findRoomByPlayer(socket.id);
+      if (!found) return callback({ success: false, error: 'Nejsi v žádné místnosti.' });
+
+      const { code, room } = found;
+      if (room.state !== 'finished') return callback({ success: false, error: 'Hra ještě neskončila.' });
+
+      // Vyčistit časovače
+      if (room.roundTimer) { clearTimeout(room.roundTimer); room.roundTimer = null; }
+      if (room.selectionTimer) { clearTimeout(room.selectionTimer); room.selectionTimer = null; }
+
+      // Odstranit odpojené hráče
+      room.players = room.players.filter(p => !p.disconnected);
+
+      // Restartovat hru
+      gameManager.startGame(code, questions);
+      console.log(`🔄 Hra restartována v místnosti ${code}`);
+
+      const playerInfo = room.players.map((p, i) => ({
+        name: p.name, score: 0, playerIndex: i
+      }));
+
+      io.to(code).emit('game-restarted', { players: playerInfo });
+      callback({ success: true });
+
+      // Spustit první kolo
+      setTimeout(() => startNextRound(code), 1500);
+    });
+
+    // ============================
+    // HRA: Hráč vybírá území (selection phase)
+    // ============================
+    socket.on('select-district', (data, callback) => {
+      const found = gameManager.findRoomByPlayer(socket.id);
+      if (!found) return callback && callback({ success: false, error: 'Nejsi v místnosti.' });
+
+      const { code } = found;
+      const result = gameManager.submitDistrictChoice(code, socket.id, data.district);
+
+      if (!result.success) {
+        return callback && callback({ success: false, error: result.error });
+      }
+
+      // Potvrdit výběr hráči
+      callback && callback({ success: true, district: data.district });
+
+      // Oznámit všem, že hraje vybral (anonymně — jen že někdo vybral)
+      const room = gameManager.getRoom(code);
+      const activePlayers = gameManager.getActivePlayers(room);
+      const chosenCount = Object.keys(room.districtChoices).length;
+      io.to(code).emit('selection-progress', {
+          chosen: chosenCount,
+          total: activePlayers.length
+      });
+
+      // Všichni vybrali → přejít na otázku
+      if (result.allChosen) {
+        if (room.selectionTimer) { clearTimeout(room.selectionTimer); room.selectionTimer = null; }
+        startQuestionPhase(code);
+      }
     });
 
     // ============================
@@ -170,14 +236,14 @@ module.exports = function setupSocket(io) {
   });
 
   // ============================
-  // Conquest fáze
+  // Conquest fáze — Selection → Question → Result
   // ============================
 
   function startNextRound(code) {
-    const roundData = gameManager.startRound(code);
+    const selectionData = gameManager.startSelectionPhase(code);
     const room = gameManager.getRoom(code);
 
-    if (!roundData) {
+    if (!selectionData) {
       if (!room) return;
 
       // Přepnutí do attack fáze
@@ -187,7 +253,7 @@ module.exports = function setupSocket(io) {
         return;
       }
 
-      // Konec hry — došly otázky nebo jiný důvod
+      // Konec hry
       room.state = 'finished';
       const reason = gameManager._remainingQuestions(room) === 0 ? 'no-questions' : 'all-districts';
       io.to(code).emit('game-over', {
@@ -198,29 +264,57 @@ module.exports = function setupSocket(io) {
       return;
     }
 
-    console.log(`📋 Kolo ${roundData.round} v ${code}: ${roundData.district} [${roundData.question.type}]`);
+    console.log(`📮 Kolo ${selectionData.round} v ${code}: Selection phase (25s)`);
 
-    // Poslat otázku všem hráčům
+    // Každému hráči poslat JEHO volitelné čtvrtě
+    const activePlayers = gameManager.getActivePlayers(room);
+    for (const player of activePlayers) {
+      const playerSocket = io.sockets.sockets.get(player.id);
+      if (playerSocket) {
+        playerSocket.emit('selection-phase', {
+          round: selectionData.round,
+          selectable: selectionData.selectablePerPlayer[player.id] || [],
+          timeLimit: SELECTION_TIME / 1000,
+          mapOwnership: { ...room.mapOwnership }
+        });
+      }
+    }
+
+    // Časovač — po 25s auto-přiřadit a přejít na otázku
+    room.selectionTimer = setTimeout(() => {
+      room.selectionTimer = null;
+      gameManager.autoAssignMissingChoices(code);
+      startQuestionPhase(code);
+    }, SELECTION_TIME + 500);
+  }
+
+  function startQuestionPhase(code) {
+    const questionData = gameManager.startQuestionPhase(code);
+    const room = gameManager.getRoom(code);
+    if (!questionData || !room) return;
+
+    console.log(`📋 Kolo ${questionData.round} v ${code}: Otázka [${questionData.question.type}]`);
+
+    // Poslat otázku všem hráčům (včetně jejich výběrů)
     io.to(code).emit('new-round', {
-      round: roundData.round,
-      district: roundData.district,
-      question: roundData.question,
+      round: questionData.round,
+      question: questionData.question,
+      districtChoices: questionData.districtChoices,
       timeLimit: ROUND_TIME / 1000
     });
 
-    // Časovač – po 15s automaticky vyhodnotit
-    if (room) {
-      room.roundTimer = setTimeout(() => {
-        finishRound(code);
-      }, ROUND_TIME + 500);
-    }
+    // Časovač odpovědí
+    room.roundTimer = setTimeout(() => {
+      finishRound(code);
+    }, ROUND_TIME + 500);
   }
 
   function finishRound(code) {
     const result = gameManager.evaluateRound(code);
     if (!result) return;
 
-    console.log(`✅ Kolo vyhodnoceno v ${code}: vítěz = ${result.winner ? result.winner.name : 'nikdo'} [${result.questionType}]`);
+    const winnerNames = result.winners.map(w => `${w.name}→${w.district}`).join(', ') || 'nikdo';
+    console.log(`✅ Kolo vyhodnoceno v ${code}: ${winnerNames} [${result.questionType}]`);
 
     // Poslat výsledek kola všem
     io.to(code).emit('round-result', {
@@ -228,8 +322,9 @@ module.exports = function setupSocket(io) {
       correctValue: result.correctValue,
       questionType: result.questionType,
       unit: result.unit,
-      winner: result.winner,
-      district: result.district,
+      winners: result.winners,
+      losers: result.losers,
+      districtChoices: result.districtChoices,
       mapOwnership: result.mapOwnership,
       scores: result.scores,
       answers: result.answers,
@@ -243,7 +338,6 @@ module.exports = function setupSocket(io) {
         mapOwnership: result.mapOwnership
       });
     } else if (result.switchToAttack) {
-      // Přepnout do attack fáze po zobrazení výsledku
       setTimeout(() => startAttackPhase(code), 3000);
     } else {
       setTimeout(() => startNextRound(code), 3000);

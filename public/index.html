@@ -138,7 +138,12 @@
           </ul>
         </div>
 
-
+        <!-- Round/Phase Info Panel (top-right) -->
+        <div id="hud-info" class="hud-panel hud-top-right">
+          <div class="hud-phase-badge phase-conquest" id="hud-phase-badge">🗺️ Dobývání</div>
+          <div class="hud-round" id="hud-round">Kolo —</div>
+          <div class="hud-turn-info" id="hud-turn-info" style="display:none;"></div>
+        </div>
 
         <!-- District Info Tooltip -->
         <div id="district-tooltip" class="tooltip hidden">
@@ -157,6 +162,21 @@
       </div>
 
     </div><!-- /game-screen -->
+
+    <!-- ===== SELECTION OVERLAY ===== -->
+    <div id="selection-overlay" class="selection-overlay" style="display:none;">
+      <div class="selection-overlay-content">
+        <span id="selection-round" class="selection-round">Kolo 1</span>
+        <h2 class="selection-title">🗺️ Vyber si území!</h2>
+        <p class="selection-desc">Klikni na zvýrazněnou čtvrť na mapě, kterou chceš zabrat.</p>
+        <div class="selection-timer-wrap">
+          <span class="selection-timer-label">Zbývá</span>
+          <span id="selection-countdown" class="selection-timer-number">25</span>
+          <span class="selection-timer-label">sekund</span>
+        </div>
+        <p id="selection-status" class="selection-status">Klikni na zvýrazněnou čtvrt!</p>
+      </div>
+    </div>
 
     <!-- ===== FULLSCREEN QUIZ OVERLAY ===== -->
     <div id="quiz-overlay" style="display:none;">
@@ -238,7 +258,8 @@
           <!-- Dynamicky generováno -->
         </div>
 
-        <button id="btn-back-lobby" class="btn-primary" style="margin-top:1.5rem;">⬅ Zpět do lobby</button>
+        <button id="btn-play-again" class="btn-primary btn-play-again" style="margin-top:1.5rem;">🔄 Hrát znovu</button>
+        <button id="btn-back-lobby" class="btn-outline" style="margin-top:0.5rem;">⬅ Zpět do lobby</button>
       </div>
     </div>
 

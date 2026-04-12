@@ -598,5 +598,205 @@
     "correct": 53,
     "unit": "metrů",
     "difficulty": 2
+  },
+  {
+    "id": 76,
+    "question": "Jak se jmenují odbojáři, kteří za druhé světové války tvořili odbojovou skupinu Tři králové?",
+    "type": "choice",
+    "options": ["Čurda, Kolařík, Opálka", "Morávek, Mašín, Balabán", "Kubiš, Gabčík, Valčík", "Moravec, Eliáš, Syrový"],
+    "correct": 1,
+    "difficulty": 3
+  },
+  {
+    "id": 77,
+    "question": "Jaký český fotbalista nastřílel nejvíce gólů v anglické Premier League?",
+    "type": "choice",
+    "options": ["Patrik Berger", "Tomáš Rosický", "Tomáš Souček", "Milan Baroš"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 78,
+    "question": "Ve kterém městě sídlí Česká zbrojovka a.s.?",
+    "type": "choice",
+    "options": ["Vlašim", "Ostrava", "Praha", "Uherský Brod"],
+    "correct": 3,
+    "difficulty": 2
+  },
+  {
+    "id": 79,
+    "question": "Kdo je nejbohatším Čechem v roce 2025 dle časopisu Forbes?",
+    "type": "choice",
+    "options": ["Renáta Kellnerová", "Daniel Křetínský", "Andrej Babiš", "Michael Strnad"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 80,
+    "question": "Jaký film vyhrál v soutěži Český lev cenu za nejlepší celovečerní hraný film roku 2025?",
+    "type": "choice",
+    "options": ["Letní škola 2001", "Na plech", "Karavan", "Sbormistr"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 81,
+    "question": "Který tým se umístil na prvním místě hlavní části hokejové extraligy v sezóně 2025/2026?",
+    "type": "choice",
+    "options": ["HC Škoda Plzeň", "Bílí Tygři Liberec", "HC Sparta Praha", "HC Dynamo Pardubice"],
+    "correct": 3,
+    "difficulty": 2
+  },
+  {
+    "id": 82,
+    "question": "Jak se jmenuje mise NASA, která má v příštích letech opět dopravit člověka na Měsíc?",
+    "type": "choice",
+    "options": ["Artemis", "New Journey", "Kuka", "Werewolf"],
+    "correct": 0,
+    "difficulty": 2
+  },
+  {
+    "id": 83,
+    "question": "Jak se jmenuje druhý muž na Měsíci?",
+    "type": "choice",
+    "options": ["Neil Armstrong", "Jurij Gagarin", "Buzz Aldrin", "Michael Collins"],
+    "correct": 2,
+    "difficulty": 2
+  },
+  {
+    "id": 84,
+    "question": "Jaký moment je považován za konec druhé světové války?",
+    "type": "choice",
+    "options": ["Kapitulace Německa", "Kapitulace Japonska", "Dobytí Berlína", "Osvobození Polska"],
+    "correct": 1,
+    "difficulty": 2
+  },
+  {
+    "id": 85,
+    "question": "Která země vyhrála fotbalové mistrovství světa v roce 2022?",
+    "type": "choice",
+    "options": ["Itálie", "Francie", "Brazílie", "Argentina"],
+    "correct": 3,
+    "difficulty": 1
+  },
+  {
+    "id": 86,
+    "question": "Kolik je na světě hor, které mají nadmořskou výšku vyšší než 8 000 metrů?",
+    "type": "estimate",
+    "correct": 14,
+    "unit": "hor",
+    "difficulty": 2
+  },
+  {
+    "id": 87,
+    "question": "Na kolik vyšších územních celků se dělí Slovenská republika?",
+    "type": "estimate",
+    "correct": 8,
+    "unit": "celků",
+    "difficulty": 2
+  },
+  {
+    "id": 88,
+    "question": "Kolik medailí získala Česká republika na Olympijských hrách v roce 2026?",
+    "type": "estimate",
+    "correct": 5,
+    "unit": "medailí",
+    "difficulty": 3
+  },
+  {
+    "id": 89,
+    "question": "Jaké hodnoty dosahovalo nominální HDP České republiky v roce 2024? (zaokrouhleno na celé miliardy Kč)",
+    "type": "estimate",
+    "correct": 8000,
+    "unit": "mld. Kč",
+    "difficulty": 3
+  },
+  {
+    "id": 90,
+    "question": "Kolik titulů mistrů světa získala hokejová reprezentace České republiky?",
+    "type": "estimate",
+    "correct": 7,
+    "unit": "titulů",
+    "difficulty": 2
+  },
+  {
+    "id": 91,
+    "question": "Kolik fakult má Vysoká škola ekonomická v Praze?",
+    "type": "estimate",
+    "correct": 6,
+    "unit": "fakult",
+    "difficulty": 2
+  },
+  {
+    "id": 92,
+    "question": "Kolik stojí běžná roční dálniční známka v ČR? (platná cena od 1. 1. 2026)",
+    "type": "estimate",
+    "correct": 2570,
+    "unit": "Kč",
+    "difficulty": 2
+  },
+  {
+    "id": 93,
+    "question": "Kolik má Senát Parlamentu ČR senátorů?",
+    "type": "estimate",
+    "correct": 81,
+    "unit": "senátorů",
+    "difficulty": 2
+  },
+  {
+    "id": 94,
+    "question": "Kolik let vládl Karel IV. jako český král?",
+    "type": "estimate",
+    "correct": 32,
+    "unit": "let",
+    "difficulty": 3
+  },
+  {
+    "id": 95,
+    "question": "Kolik Zlatých Slavíků vyhrál za svůj život Karel Gott?",
+    "type": "estimate",
+    "correct": 42,
+    "unit": "Zlatých Slavíků",
+    "difficulty": 2
+  },
+  {
+    "id": 96,
+    "question": "Jaké číslo je v knize Stopařův průvodce po Galaxii uvedeno jako odpověď na základní otázku života, vesmíru a vůbec?",
+    "type": "estimate",
+    "correct": 42,
+    "unit": "",
+    "difficulty": 1
+  },
+  {
+    "id": 97,
+    "question": "Jaká je sazba DPH na tzv. tiché víno v ČR? (v procentech)",
+    "type": "estimate",
+    "correct": 0,
+    "unit": "%",
+    "difficulty": 3
+  },
+  {
+    "id": 98,
+    "question": "V kterém roce se poprvé dostal člověk do vesmíru?",
+    "type": "estimate",
+    "correct": 1961,
+    "unit": "rok",
+    "difficulty": 1
+  },
+  {
+    "id": 99,
+    "question": "1 stupeň Celsia je kolik stupňů Fahrenheita?",
+    "type": "estimate",
+    "correct": 33.8,
+    "unit": "°F",
+    "difficulty": 2
+  },
+  {
+    "id": 100,
+    "question": "Kolik hráčů je na hřišti v jednom rugbyovém týmu během zápasu?",
+    "type": "estimate",
+    "correct": 15,
+    "unit": "hráčů",
+    "difficulty": 2
   }
 ]

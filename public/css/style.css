@@ -149,11 +149,154 @@ body {
 }
 
 .district.selected {
-  fill: var(--accent);
-  stroke: #fff;
-  stroke-width: 2.6;
-  filter: url(#glow) drop-shadow(0 0 12px var(--accent-glow));
+  stroke: var(--gold);
+  stroke-width: 3;
+  filter: url(#glow) drop-shadow(0 0 12px var(--gold-glow));
   animation: pulse-district 2s ease-in-out infinite;
+}
+
+/* Round target — pulsing gold outline, no fill change */
+.district.round-target {
+  stroke: var(--gold);
+  stroke-width: 3.5;
+  filter: url(#glow) drop-shadow(0 0 16px var(--gold-glow));
+  animation: pulse-district 1.5s ease-in-out infinite;
+}
+
+/* Attackable districts glow green */
+.district.attackable {
+  stroke: #2ecc71;
+  stroke-width: 3;
+  filter: url(#glow) drop-shadow(0 0 12px rgba(46, 204, 113, 0.5));
+  animation: pulse-district 1.8s ease-in-out infinite;
+  cursor: crosshair;
+}
+
+/* Ensure owned colors always take priority over selected highlight */
+.district.owned-player1.selected,
+.district.owned-player1.round-target {
+  fill: #e94560;
+}
+
+.district.owned-player2.selected,
+.district.owned-player2.round-target {
+  fill: #4a6cf7;
+}
+
+.district.owned-player3.selected,
+.district.owned-player3.round-target {
+  fill: #2ecc71;
+}
+
+/* Selectable districts — green pulsing glow during selection phase */
+.district.selectable {
+  stroke: #2ecc71;
+  stroke-width: 3;
+  filter: url(#glow) drop-shadow(0 0 14px rgba(46, 204, 113, 0.6));
+  animation: pulse-district 1.4s ease-in-out infinite;
+  cursor: pointer;
+}
+
+.district.selectable:hover {
+  fill: rgba(46, 204, 113, 0.25);
+  stroke: #5eff9e;
+  stroke-width: 3.5;
+  filter: url(#glow) drop-shadow(0 0 20px rgba(46, 204, 113, 0.8));
+}
+
+/* District selected by current player */
+.district.selected-by-me {
+  fill: rgba(245, 197, 66, 0.35);
+  stroke: var(--gold);
+  stroke-width: 3.5;
+  filter: url(#glow) drop-shadow(0 0 16px var(--gold-glow));
+  animation: pulse-district 2s ease-in-out infinite;
+}
+
+/* ---- Selection Overlay ---- */
+.selection-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 80;
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+  pointer-events: none;
+  animation: fadeInDown 0.5s ease-out;
+}
+
+.selection-overlay-content {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius);
+  padding: 1.2rem 2rem;
+  text-align: center;
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  pointer-events: all;
+  max-width: 450px;
+}
+
+.selection-round {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  background: rgba(245, 197, 66, 0.12);
+  border: 1px solid rgba(245, 197, 66, 0.18);
+  padding: 0.2rem 0.7rem;
+  border-radius: 6px;
+  margin-bottom: 0.6rem;
+}
+
+.selection-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.selection-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.8rem;
+}
+
+.selection-timer-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.selection-timer-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.selection-timer-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--gold);
+  text-shadow: 0 0 16px var(--gold-glow);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+.selection-status {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .district.owned-player1 {
@@ -1650,4 +1793,77 @@ body {
   font-size: 1.1rem;
   color: var(--text-secondary);
   font-weight: 500;
+}
+
+/* ===================================
+   HUD Info Panel (Round / Phase)
+   =================================== */
+
+#hud-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+.hud-phase-badge {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.25rem 0.7rem;
+  border-radius: 8px;
+  margin-bottom: 0.25rem;
+  transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}
+
+.hud-phase-badge.phase-conquest {
+  color: #2ecc71;
+  background: rgba(46, 204, 113, 0.12);
+  border: 1px solid rgba(46, 204, 113, 0.25);
+}
+
+.hud-phase-badge.phase-attack {
+  color: var(--accent);
+  background: rgba(233, 69, 96, 0.12);
+  border: 1px solid rgba(233, 69, 96, 0.25);
+  animation: attackBadgePulse 2s ease-in-out infinite;
+}
+
+@keyframes attackBadgePulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(233, 69, 96, 0); }
+  50% { box-shadow: 0 0 12px rgba(233, 69, 96, 0.3); }
+}
+
+.hud-round {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-turn-info {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin-top: 0.15rem;
+  text-shadow: 0 0 8px var(--gold-glow);
+}
+
+/* ---- Play Again Button ---- */
+
+.btn-play-again {
+  background: linear-gradient(135deg, #2ecc71, #27ae60) !important;
+  box-shadow: 0 4px 20px rgba(46, 204, 113, 0.3) !important;
+}
+
+.btn-play-again:hover {
+  box-shadow: 0 6px 28px rgba(46, 204, 113, 0.45) !important;
+}
+
+.btn-play-again:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
 }

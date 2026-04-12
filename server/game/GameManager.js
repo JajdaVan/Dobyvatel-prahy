@@ -6,9 +6,29 @@ const DISTRICTS = [
   'praha-11', 'praha-12', 'praha-13', 'praha-14', 'praha-15'
 ];
 
+// Mapa sousedství čtvrtí (na základě SVG mapy)
+const ADJACENCY_MAP = {
+  'praha-1':  ['praha-2', 'praha-5', 'praha-7', 'praha-8'],
+  'praha-2':  ['praha-1', 'praha-3', 'praha-4', 'praha-10'],
+  'praha-3':  ['praha-2', 'praha-8', 'praha-9', 'praha-10'],
+  'praha-4':  ['praha-1', 'praha-2', 'praha-5', 'praha-11', 'praha-12'],
+  'praha-5':  ['praha-1', 'praha-4', 'praha-6', 'praha-12', 'praha-13'],
+  'praha-6':  ['praha-5', 'praha-7', 'praha-13'],
+  'praha-7':  ['praha-1', 'praha-6', 'praha-8'],
+  'praha-8':  ['praha-1', 'praha-3', 'praha-7', 'praha-9'],
+  'praha-9':  ['praha-3', 'praha-8', 'praha-10', 'praha-14'],
+  'praha-10': ['praha-2', 'praha-3', 'praha-9', 'praha-11', 'praha-14', 'praha-15'],
+  'praha-11': ['praha-4', 'praha-10', 'praha-12', 'praha-15'],
+  'praha-12': ['praha-4', 'praha-5', 'praha-11'],
+  'praha-13': ['praha-5', 'praha-6'],
+  'praha-14': ['praha-9', 'praha-10', 'praha-15'],
+  'praha-15': ['praha-10', 'praha-11', 'praha-14']
+};
+
 const WIN_THRESHOLD = 0.7; // 70 % mapy = vítězství
 const WIN_DISTRICT_COUNT = Math.ceil(DISTRICTS.length * WIN_THRESHOLD); // 11 z 15
 const ESTIMATE_CHANCE = 0.25; // 25 % šance na odhadovací otázku
+const ESTIMATE_TOLERANCE = 0.05; // 5 % povolená odchylka u estimate otázek
 
 class GameManager {
   constructor() {
@@ -42,13 +62,15 @@ class GameManager {
 
       // --- Herní stav ---
       phase: 'conquest',              // conquest | attack
+      roundPhase: 'idle',             // idle | selecting | answering
       mapOwnership: {},               // { 'praha-1': playerIndex, ... }
       availableDistricts: [],          // čtvrtě, které ještě nikdo nevlastní
       currentRound: 0,
       currentQuestion: null,
-      currentDistrict: null,           // čtvrť, o kterou se hraje
+      districtChoices: {},             // { socketId: districtId } — výběry hráčů
       roundAnswers: {},                // { socketId: { answer, time } }
       roundTimer: null,
+      selectionTimer: null,
       choicePool: [],                  // choice otázky (shuffled)
       estimatePool: [],                // estimate otázky (shuffled)
       choiceIndex: 0,
@@ -161,6 +183,13 @@ class GameManager {
     room.attackTurnIndex = 0;
     room.attackRoundsPlayed = 0;
 
+    // Reset hráčských skóre a herního stavu (důležité pro restart)
+    room.players.forEach(p => { p.score = 0; });
+    room.districtChoices = {};
+    room.roundAnswers = {};
+    room.currentQuestion = null;
+    room.roundPhase = 'idle';
+
     return room;
   }
 
@@ -187,15 +216,50 @@ class GameManager {
     return (room.choicePool.length - room.choiceIndex) + (room.estimatePool.length - room.estimateIndex);
   }
 
-  // Začít nové kolo (conquest fáze)
-  startRound(code) {
+  // ============================================
+  // Conquest fáze — Výběr území + otázka
+  // ============================================
+
+  // Získat volitelné čtvrtě pro hráče (sousedící s jeho územím)
+  getSelectableDistricts(room, playerIndex) {
+    const owned = [];
+    for (const [districtId, ownerIdx] of Object.entries(room.mapOwnership)) {
+      if (ownerIdx === playerIndex) owned.push(districtId);
+    }
+
+    // 1. kolo nebo hráč nemá žádné území → libovolná volná čtvrť
+    if (owned.length === 0) {
+      return [...room.availableDistricts];
+    }
+
+    // Najdi sousední volné čtvrtě
+    const adjacentFree = new Set();
+    for (const ownedDistrict of owned) {
+      const neighbors = ADJACENCY_MAP[ownedDistrict] || [];
+      for (const neighbor of neighbors) {
+        if (room.availableDistricts.includes(neighbor)) {
+          adjacentFree.add(neighbor);
+        }
+      }
+    }
+
+    // Pokud žádná sousední volná čtvrť — fallback na libovolnou volnou
+    if (adjacentFree.size === 0) {
+      return [...room.availableDistricts];
+    }
+
+    return [...adjacentFree];
+  }
+
+  // Zahájit selection fázi (hráči vybírají území)
+  startSelectionPhase(code) {
     const room = this.rooms.get(code);
     if (!room || room.state !== 'playing') return null;
 
     // Přepnutí do attack fáze pokud nejsou volné čtvrtě
     if (room.availableDistricts.length === 0) {
       room.phase = 'attack';
-      return null; // signál pro socket handler, že má zahájit attack fázi
+      return null;
     }
 
     // Došly otázky → konec hry
@@ -204,32 +268,102 @@ class GameManager {
     }
 
     room.currentRound++;
+    room.roundPhase = 'selecting';
+    room.districtChoices = {};
     room.roundAnswers = {};
 
-    // Vyber náhodnou dostupnou čtvrť
-    const districtIdx = Math.floor(Math.random() * room.availableDistricts.length);
-    room.currentDistrict = room.availableDistricts[districtIdx];
-
-    // Vyber otázku (25% estimate, 75% choice)
-    room.currentQuestion = this._pickQuestion(room);
-    if (!room.currentQuestion) return null;
-
-    const questionData = {
-      id: room.currentQuestion.id,
-      question: room.currentQuestion.question,
-      type: room.currentQuestion.type
-    };
-
-    if (room.currentQuestion.type === 'choice') {
-      questionData.options = room.currentQuestion.options;
-    } else {
-      questionData.unit = room.currentQuestion.unit || '';
+    // Připravit seznam volitelných čtvrtí pro každého aktivního hráče
+    const activePlayers = this.getActivePlayers(room);
+    const selectablePerPlayer = {};
+    for (const player of activePlayers) {
+      const playerIndex = room.players.indexOf(player);
+      selectablePerPlayer[player.id] = this.getSelectableDistricts(room, playerIndex);
     }
 
     return {
       round: room.currentRound,
-      district: room.currentDistrict,
-      question: questionData
+      selectablePerPlayer
+    };
+  }
+
+  // Hráč vybere čtvrť
+  submitDistrictChoice(code, socketId, districtId) {
+    const room = this.rooms.get(code);
+    if (!room || room.roundPhase !== 'selecting') {
+      return { success: false, error: 'Není fáze výběru.' };
+    }
+
+    const playerIndex = room.players.findIndex(p => p.id === socketId);
+    if (playerIndex === -1) return { success: false, error: 'Hráč neexistuje.' };
+
+    // Ověř, že čtvrť je volná
+    if (!room.availableDistricts.includes(districtId)) {
+      return { success: false, error: 'Čtvrť není volná.' };
+    }
+
+    // Ověř sousedství
+    const selectable = this.getSelectableDistricts(room, playerIndex);
+    if (!selectable.includes(districtId)) {
+      return { success: false, error: 'Čtvrť nesousedí s tvým územím.' };
+    }
+
+    room.districtChoices[socketId] = districtId;
+
+    // Kontrola: vybrali všichni aktivní hráči?
+    const activePlayers = this.getActivePlayers(room);
+    const allChosen = activePlayers.every(p => room.districtChoices[p.id]);
+
+    return { success: true, allChosen };
+  }
+
+  // Auto-přiřadit čtvrť hráčům, kteří si nevybrali (náhodně z volitelných)
+  autoAssignMissingChoices(code) {
+    const room = this.rooms.get(code);
+    if (!room) return;
+
+    const activePlayers = this.getActivePlayers(room);
+    for (const player of activePlayers) {
+      if (!room.districtChoices[player.id]) {
+        const playerIndex = room.players.indexOf(player);
+        const selectable = this.getSelectableDistricts(room, playerIndex);
+        if (selectable.length > 0) {
+          const randomIdx = Math.floor(Math.random() * selectable.length);
+          room.districtChoices[player.id] = selectable[randomIdx];
+        }
+      }
+    }
+  }
+
+  // Zahájit otázkovou fázi (po výběru území)
+  startQuestionPhase(code) {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+
+    room.roundPhase = 'answering';
+    room.roundAnswers = {};
+
+    // Vyber otázku
+    room.currentQuestion = this._pickQuestion(room);
+    if (!room.currentQuestion) return null;
+
+    const q = room.currentQuestion;
+    const questionData = {
+      id: q.id,
+      question: q.question,
+      type: q.type
+    };
+
+    if (q.type === 'choice') {
+      questionData.options = q.options;
+    } else {
+      questionData.unit = q.unit || '';
+    }
+
+    return {
+      round: room.currentRound,
+      question: questionData,
+      // Pošleme výběry všech hráčů (zobrazí se na mapě)
+      districtChoices: { ...room.districtChoices }
     };
   }
 
@@ -239,7 +373,6 @@ class GameManager {
     if (!room || room.state !== 'playing') return { success: false };
     if (!room.currentQuestion) return { success: false };
 
-    // Uložit jen první odpověď od každého hráče
     if (room.roundAnswers[socketId]) return { success: false, error: 'Už jsi odpověděl.' };
 
     const q = room.currentQuestion;
@@ -251,7 +384,6 @@ class GameManager {
         correct: answerValue === q.correct
       };
     } else {
-      // estimate — uložit numerický odhad
       room.roundAnswers[socketId] = {
         answer: Number(answerValue),
         time: timestamp,
@@ -265,67 +397,99 @@ class GameManager {
     return { success: true, allAnswered: answeredActive >= activePlayers.length };
   }
 
-  // Vyhodnotit kolo – najdi vítěze
+  // Vyhodnotit kolo — každý hráč může získat svou zvolenou čtvrť
   evaluateRound(code) {
     const room = this.rooms.get(code);
     if (!room) return null;
 
     const q = room.currentQuestion;
-    let winner = null;
-    let winnerInfo = null;
+    const winners = [];     // [ { socketId, playerIndex, name, district } ]
+    const losers = [];      // [ { socketId, playerIndex, name, district } ]
 
-    if (q.type === 'choice') {
-      // Choice — nejrychlejší správná odpověď
-      let fastestTime = Infinity;
-      for (const [socketId, data] of Object.entries(room.roundAnswers)) {
-        if (data.correct && data.time < fastestTime) {
-          fastestTime = data.time;
-          winner = socketId;
-        }
-      }
-    } else {
-      // Estimate — nejbližší odhad
-      let bestDiff = Infinity;
-      let bestTime = Infinity;
-      for (const [socketId, data] of Object.entries(room.roundAnswers)) {
-        if (data.diff < bestDiff || (data.diff === bestDiff && data.time < bestTime)) {
-          bestDiff = data.diff;
-          bestTime = data.time;
-          winner = socketId;
-        }
-      }
+    // Seskupit hráče podle zvolené čtvrtě (detekce konfliktů)
+    const districtContestants = {}; // { districtId: [ { socketId, playerIndex, answerData } ] }
+    for (const [socketId, districtId] of Object.entries(room.districtChoices)) {
+      if (!districtContestants[districtId]) districtContestants[districtId] = [];
+      const playerIndex = room.players.findIndex(p => p.id === socketId);
+      const answerData = room.roundAnswers[socketId] || null;
+      districtContestants[districtId].push({ socketId, playerIndex, answerData });
     }
 
-    const district = room.currentDistrict;
-    let winnerPlayerIndex = -1;
+    // Vyhodnotit každou čtvrť
+    for (const [districtId, contestants] of Object.entries(districtContestants)) {
+      // Najít všechny, kdo odpověděli správně
+      let correctContestants = [];
 
-    if (winner) {
-      winnerPlayerIndex = room.players.findIndex(p => p.id === winner);
-      room.mapOwnership[district] = winnerPlayerIndex;
-      room.players[winnerPlayerIndex].score++;
-      room.availableDistricts = room.availableDistricts.filter(d => d !== district);
-    } else {
-      // Nikdo neodpověděl — čtvrť odstraněna z volných
-      room.availableDistricts = room.availableDistricts.filter(d => d !== district);
+      if (q.type === 'choice') {
+        correctContestants = contestants.filter(c => c.answerData && c.answerData.correct);
+      } else {
+        // Estimate — jen hráči s odchylkou do 5 % od správné hodnoty
+        const tolerance = Math.abs(q.correct) * ESTIMATE_TOLERANCE;
+        correctContestants = contestants.filter(c => c.answerData && c.answerData.diff <= tolerance);
+      }
+
+      if (correctContestants.length === 0) {
+        // Nikdo neodpověděl správně — nikdo nezíská tuto čtvrť
+        contestants.forEach(c => {
+          losers.push({
+            socketId: c.socketId,
+            playerIndex: c.playerIndex,
+            name: room.players[c.playerIndex].name,
+            district: districtId
+          });
+        });
+        continue;
+      }
+
+      // Vybrat vítěze: pokud je jen 1 správný, je vítěz.
+      // Pokud je víc (konflikt) → nejrychlejší / nejbližší odhad.
+      let winnerC;
+      if (q.type === 'choice') {
+        correctContestants.sort((a, b) => a.answerData.time - b.answerData.time);
+        winnerC = correctContestants[0];
+      } else {
+        correctContestants.sort((a, b) => {
+          if (a.answerData.diff !== b.answerData.diff) return a.answerData.diff - b.answerData.diff;
+          return a.answerData.time - b.answerData.time;
+        });
+        winnerC = correctContestants[0];
+      }
+
+      // Přiřadit čtvrť vítězi
+      room.mapOwnership[districtId] = winnerC.playerIndex;
+      room.players[winnerC.playerIndex].score++;
+      room.availableDistricts = room.availableDistricts.filter(d => d !== districtId);
+
+      winners.push({
+        socketId: winnerC.socketId,
+        playerIndex: winnerC.playerIndex,
+        name: room.players[winnerC.playerIndex].name,
+        district: districtId
+      });
+
+      // Ostatní soutěžící o tutéž čtvrť jsou losers
+      contestants.filter(c => c.socketId !== winnerC.socketId).forEach(c => {
+        losers.push({
+          socketId: c.socketId,
+          playerIndex: c.playerIndex,
+          name: room.players[c.playerIndex].name,
+          district: districtId
+        });
+      });
     }
 
     // --- Podmínky konce hry ---
     let gameOver = false;
     let gameOverReason = null;
 
-    // 1) Hráč ovládl 70 % mapy
-    if (winner) {
-      const winnerScore = room.players[winnerPlayerIndex].score;
-      if (winnerScore >= WIN_DISTRICT_COUNT) {
+    for (const p of room.players) {
+      if (p.score >= WIN_DISTRICT_COUNT) {
         gameOver = true;
         gameOverReason = 'dominance';
+        break;
       }
     }
 
-    // 2) Všechny čtvrtě obsazeny → přepnout do attack fáze (ne game over!)
-    // (kontrola proběhne v startRound)
-
-    // 3) Došly otázky
     if (!gameOver && this._remainingQuestions(room) === 0 && room.availableDistricts.length > 0) {
       gameOver = true;
       gameOverReason = 'no-questions';
@@ -337,25 +501,21 @@ class GameManager {
 
     // Reset kola
     room.currentQuestion = null;
-    room.currentDistrict = null;
+    room.roundPhase = 'idle';
 
     return {
       correctAnswer: q.type === 'choice' ? q.correct : null,
       correctValue: q.type === 'estimate' ? q.correct : null,
       questionType: q.type,
       unit: q.unit || null,
-      winner: winner ? {
-        socketId: winner,
-        playerIndex: winnerPlayerIndex,
-        name: room.players[winnerPlayerIndex].name
-      } : null,
-      district,
+      winners,
+      losers,
+      districtChoices: { ...room.districtChoices },
       mapOwnership: { ...room.mapOwnership },
       scores: room.players.map(p => ({ name: p.name, score: p.score })),
       answers: room.roundAnswers,
       gameOver,
       gameOverReason,
-      // Signál pro přepnutí do attack fáze
       switchToAttack: !gameOver && room.availableDistricts.length === 0
     };
   }
@@ -520,17 +680,24 @@ class GameManager {
       }
       // Oba špatně = nikdo (remíza, neboduje se)
     } else {
-      // Estimate — kdo je blíž
+      // Estimate — kdo je blíž (ale oba musí být do 5% tolerance)
+      const tolerance = Math.abs(q.correct) * ESTIMATE_TOLERANCE;
       const atkDiff = atkAnswer ? atkAnswer.diff : Infinity;
       const defDiff = defAnswer ? defAnswer.diff : Infinity;
+      const atkOk = atkDiff <= tolerance;
+      const defOk = defDiff <= tolerance;
 
-      if (atkDiff < defDiff) {
+      if (atkOk && defOk) {
+        // Oba v toleranci — bližší vyhrává
+        if (atkDiff < defDiff) subWinner = 'attacker';
+        else if (defDiff < atkDiff) subWinner = 'defender';
+        else subWinner = atkAnswer.time <= defAnswer.time ? 'attacker' : 'defender';
+      } else if (atkOk) {
         subWinner = 'attacker';
-      } else if (defDiff < atkDiff) {
+      } else if (defOk) {
         subWinner = 'defender';
-      } else if (atkDiff === defDiff && atkAnswer && defAnswer) {
-        subWinner = atkAnswer.time <= defAnswer.time ? 'attacker' : 'defender';
       }
+      // Oba mimo toleranci = nikdo (remíza)
     }
 
     if (subWinner === 'attacker') atk.scores.attacker++;

@@ -204,9 +204,14 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
         if (lbl) lbl.classList.remove('label-hover');
       });
       district.addEventListener('click', () => {
-        // Pokud jsme v attack selection mode, zpracuj kliknutí tam
+        // Pokud jsme v attack selection mode
         if (window._attackSelectMode) {
           window._handleAttackDistrictClick(district.id);
+          return;
+        }
+        // Pokud jsme v selection mode (výběr území)
+        if (window._selectionMode) {
+          window._handleDistrictSelection(district.id);
           return;
         }
         if (selectedDistrict) selectedDistrict.classList.remove('selected');
@@ -241,6 +246,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
   let totalTime      = 15;
   let currentQuestionType = 'choice';
   let isAttackPhase  = false;
+  let mySelectedDistrict = null;  // čtvrť, kterou jsem si vybral v selection phase
 
   // --- Overlay DOM refs ---
   const quizOverlay     = document.getElementById('quiz-overlay');
@@ -272,6 +278,11 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
   const attackResultOverlay = document.getElementById('attack-result-overlay');
   const attackResultTitle = document.getElementById('attack-result-title');
   const attackResultDetail = document.getElementById('attack-result-detail');
+
+  // --- HUD info panel refs ---
+  const hudPhaseBadge = document.getElementById('hud-phase-badge');
+  const hudRound = document.getElementById('hud-round');
+  const hudTurnInfo = document.getElementById('hud-turn-info');
 
   // --- Scoreboard init ---
   window.initGameScoreboard = function (players) {
@@ -320,21 +331,63 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
     }
   }
 
-  // --- Zvýrazni čtvrť ---
-  function highlightDistrict(districtId) {
-    document.querySelectorAll('.district.round-target').forEach(d => {
-      d.classList.remove('round-target', 'selected');
-    });
-    const el = document.getElementById(districtId);
-    if (el) {
-      el.classList.add('round-target', 'selected');
+  // --- Aktualizace HUD info panelu ---
+  function updateHUD(options) {
+    if (hudPhaseBadge && options.phase !== undefined) {
+      if (options.phase === 'conquest') {
+        hudPhaseBadge.textContent = '🗺️ Dobývání';
+        hudPhaseBadge.className = 'hud-phase-badge phase-conquest';
+      } else if (options.phase === 'attack') {
+        hudPhaseBadge.textContent = '⚔️ Útok';
+        hudPhaseBadge.className = 'hud-phase-badge phase-attack';
+      }
+    }
+    if (hudRound) {
+      if (options.round === null) {
+        hudRound.style.display = 'none';
+      } else if (options.round !== undefined) {
+        hudRound.style.display = 'block';
+        hudRound.textContent = `Kolo ${options.round}`;
+      }
+    }
+    if (hudTurnInfo && options.turnInfo !== undefined) {
+      hudTurnInfo.textContent = options.turnInfo;
+      hudTurnInfo.style.display = options.turnInfo ? 'block' : 'none';
+    }
+  }
+
+  // --- Zvýrazni čtvrtě podle výběrů ---
+  function highlightDistrictChoices(districtChoices, myPlayerId) {
+    clearDistrictHighlight();
+    for (const [socketId, districtId] of Object.entries(districtChoices)) {
+      const el = document.getElementById(districtId);
+      if (el) {
+        el.classList.add('round-target');
+        if (socketId === myPlayerId) {
+          el.classList.add('selected-by-me');
+        }
+      }
     }
   }
 
   function clearDistrictHighlight() {
-    document.querySelectorAll('.district.round-target').forEach(d => {
-      d.classList.remove('round-target', 'selected');
+    document.querySelectorAll('.district.round-target, .district.selected, .district.selectable, .district.selected-by-me').forEach(d => {
+      d.classList.remove('round-target', 'selected', 'selectable', 'selected-by-me');
     });
+  }
+
+  // --- Cleanup selection mode ---
+  function cleanupSelectionMode() {
+    window._selectionMode = false;
+    if (window._selectionTimerInterval) {
+      clearInterval(window._selectionTimerInterval);
+      window._selectionTimerInterval = null;
+    }
+    document.querySelectorAll('.district.selectable, .district.selected-by-me').forEach(d => {
+      d.classList.remove('selectable', 'selected-by-me');
+    });
+    const overlay = document.getElementById('selection-overlay');
+    if (overlay) overlay.style.display = 'none';
   }
 
   // ============================================
@@ -550,7 +603,6 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
         }
       });
 
-      // Mark wrong answer if player picked incorrectly
       if (answered) {
         const selectedBtn = overlayAnswers.querySelector('.selected-answer');
         if (selectedBtn && parseInt(selectedBtn.dataset.index) !== data.correctAnswer) {
@@ -558,16 +610,17 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
         }
       }
     } else {
-      // Estimate result
       const correctVal = data.correctValue;
       const unit = data.unit || '';
       estimateResult.style.display = 'block';
       estimateResult.innerHTML = `<strong>Správná odpověď:</strong> ${correctVal} ${unit}`;
-      if (data.winner) {
-        const winnerAnswer = data.answers && data.answers[data.winner.socketId];
-        if (winnerAnswer) {
-          estimateResult.innerHTML += `<br><strong>${data.winner.name}</strong> tipnul/a: ${winnerAnswer.answer} ${unit}`;
-        }
+      if (data.winners && data.winners.length > 0) {
+        data.winners.forEach(w => {
+          const winnerAnswer = data.answers && data.answers[w.socketId];
+          if (winnerAnswer) {
+            estimateResult.innerHTML += `<br><strong>${w.name}</strong> tipnul/a: ${winnerAnswer.answer} ${unit}`;
+          }
+        });
       }
     }
   }
@@ -576,17 +629,100 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
   // Socket.IO herní eventy — Conquest fáze
   // ============================================
 
-  // Nové kolo
-  socket.on('new-round', (data) => {
-    console.log(`📋 Kolo ${data.round}: ${data.district} [${data.question.type}]`);
+  // Selection phase — hráč vybírá území
+  socket.on('selection-phase', (data) => {
+    console.log(`📮 Kolo ${data.round}: Výběr území (${data.timeLimit}s)`, data.selectable);
 
-    highlightDistrict(data.district);
+    updateHUD({ phase: 'conquest', round: data.round, turnInfo: '' });
+
+    // Aktualizovat mapu
+    updateMapOwnership(data.mapOwnership);
+    mySelectedDistrict = null;
+
+    // Zvýraznit volitelné čtvrtě
+    data.selectable.forEach(districtId => {
+      const el = document.getElementById(districtId);
+      if (el) el.classList.add('selectable');
+    });
+
+    // Zobrazit selection overlay
+    const overlay = document.getElementById('selection-overlay');
+    const countdownEl = document.getElementById('selection-countdown');
+    const statusEl = document.getElementById('selection-status');
+    const roundEl = document.getElementById('selection-round');
+
+    if (roundEl) roundEl.textContent = `Kolo ${data.round}`;
+    if (statusEl) statusEl.textContent = 'Klikni na zvýrazněnou čtvrt!';
+    if (overlay) overlay.style.display = 'flex';
+
+    // Countdown
+    let countdown = data.timeLimit;
+    if (countdownEl) countdownEl.textContent = countdown;
+    window._selectionTimerInterval = setInterval(() => {
+      countdown--;
+      if (countdownEl) countdownEl.textContent = Math.max(0, countdown);
+      if (countdown <= 0) {
+        clearInterval(window._selectionTimerInterval);
+        window._selectionTimerInterval = null;
+      }
+    }, 1000);
+
+    // Aktivovat selection mode
+    window._selectionMode = true;
+    window._handleDistrictSelection = function (districtId) {
+      if (!data.selectable.includes(districtId)) {
+        showNotification('Tuto čtvrt nemůžeš vybrat! Musí sousedít s tvým územím.', 'warning');
+        return;
+      }
+
+      // Odeslat výběr na server
+      socket.emit('select-district', { district: districtId }, (res) => {
+        if (!res.success) {
+          showNotification(res.error, 'warning');
+          return;
+        }
+
+        mySelectedDistrict = districtId;
+
+        // Vizulní feedback
+        document.querySelectorAll('.district.selectable').forEach(d => d.classList.remove('selectable'));
+        document.querySelectorAll('.district.selected-by-me').forEach(d => d.classList.remove('selected-by-me'));
+        const el = document.getElementById(districtId);
+        if (el) el.classList.add('selected-by-me');
+
+        const districtName = el ? el.dataset.name : districtId;
+        if (statusEl) statusEl.textContent = `Vybráno: ${districtName} — čekám na ostatní...`;
+
+        console.log(`✅ Vybráno: ${districtId}`);
+      });
+    };
+  });
+
+  // Progress výběru (kolik hráčů již vybralo)
+  socket.on('selection-progress', (data) => {
+    const statusEl = document.getElementById('selection-status');
+    if (statusEl && mySelectedDistrict) {
+      statusEl.textContent = `Čekám na ostatní... (${data.chosen}/${data.total})`;
+    }
+  });
+
+  // Nové kolo — otázka (po výběru území)
+  socket.on('new-round', (data) => {
+    console.log(`📋 Kolo ${data.round}: Otázka [${data.question.type}]`);
+
+    cleanupSelectionMode();
+
+    // Zvýraznit všechny vybrané čtvrtě na mapě
+    highlightDistrictChoices(data.districtChoices, socket.id);
+
+    // Určit district pro quiz overlay tag (můj výběr)
+    const myDistrict = data.districtChoices[socket.id] || mySelectedDistrict || Object.values(data.districtChoices)[0] || '';
 
     setTimeout(() => {
       roundStartTime = Date.now();
-      showQuizOverlay(data.question, data.district, null);
+      showQuizOverlay(data.question, myDistrict, null);
       startTimer(data.timeLimit);
-    }, 2000);
+    }, 1500);
   });
 
   // Výsledek kola
@@ -598,10 +734,15 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
     updateScores(data.scores);
     clearDistrictHighlight();
 
-    if (data.winner) {
-      console.log(`🏆 ${data.winner.name} získává ${data.district}!`);
+    // Log výtězů
+    if (data.winners && data.winners.length > 0) {
+      data.winners.forEach(w => {
+        const el = document.getElementById(w.district);
+        const name = el ? el.dataset.name : w.district;
+        console.log(`🏆 ${w.name} získává ${name}!`);
+      });
     } else {
-      console.log(`😢 Nikdo neodpověděl správně, ${data.district} zůstává neobsazeno.`);
+      console.log(`😢 Nikdo nezískal žádné území.`);
     }
 
     if (!data.gameOver) {
@@ -618,11 +759,13 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
     isAttackPhase = true;
     console.log('⚔️ Attack fáze zahájena!');
     showNotification('⚔️ Všechny čtvrtě obsazeny — začíná boj o území!', 'warning');
+    updateHUD({ phase: 'attack', round: null, turnInfo: '' });
   });
 
   // Útočník má vybrat cíl
   socket.on('attack-select', (data) => {
     console.log('⚔️ Výběr útoku:', data);
+    updateHUD({ turnInfo: `Na tahu: ${data.attackerName}` });
 
     const isMe = data.attackerSocketId === socket.id;
 
@@ -812,7 +955,56 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
 
       document.getElementById('gameover-overlay').style.display = 'flex';
       document.getElementById('btn-back-lobby').onclick = () => window.location.reload();
+
+      // Restart button handler
+      const btnPlayAgain = document.getElementById('btn-play-again');
+      if (btnPlayAgain) {
+        btnPlayAgain.disabled = false;
+        btnPlayAgain.textContent = '🔄 Hrát znovu';
+        btnPlayAgain.onclick = () => {
+          btnPlayAgain.disabled = true;
+          btnPlayAgain.textContent = '⏳ Restartuji...';
+          socket.emit('restart-game', (res) => {
+            if (!res.success) {
+              showNotification(res.error, 'warning');
+              btnPlayAgain.disabled = false;
+              btnPlayAgain.textContent = '🔄 Hrát znovu';
+            }
+          });
+        };
+      }
     });
+  });
+
+  // Restart hry — server potvrdil restart, resetujeme klientský stav
+  socket.on('game-restarted', (data) => {
+    console.log('🔄 Hra restartována!', data.players);
+
+    // Skrýt všechny overlays
+    document.getElementById('gameover-overlay').style.display = 'none';
+    quizOverlay.style.display = 'none';
+    quizOverlay.classList.remove('quiz-overlay-hiding');
+    attackResultOverlay.style.display = 'none';
+
+    // Reset herního stavu
+    isAttackPhase = false;
+    mySelectedDistrict = null;
+    answered = false;
+    stopTimer();
+    cleanupSelectionMode();
+    cleanupAttackSelect();
+
+    // Reset mapy a scoreboardu
+    updateMapOwnership({});
+    clearDistrictHighlight();
+    if (typeof window.initGameScoreboard === 'function') {
+      window.initGameScoreboard(data.players);
+    }
+
+    // Reset HUD
+    updateHUD({ phase: 'conquest', round: '—', turnInfo: '' });
+
+    showNotification('🔄 Nová hra začíná!', 'info');
   });
 
   // Hráč se odpojil během hry
