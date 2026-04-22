@@ -130,9 +130,13 @@ module.exports = function setupSocket(io) {
       const room = gameManager.getRoom(code);
       const activePlayers = gameManager.getActivePlayers(room);
       const chosenCount = Object.keys(room.districtChoices).length;
+      const waitingFor = activePlayers
+        .filter(p => !room.districtChoices[p.id])
+        .map(p => p.name);
       io.to(code).emit('selection-progress', {
           chosen: chosenCount,
-          total: activePlayers.length
+          total: activePlayers.length,
+          waitingFor
       });
 
       // Všichni vybrali → přejít na otázku
@@ -280,6 +284,17 @@ module.exports = function setupSocket(io) {
       }
     }
 
+    // Poslat počáteční selection-progress — všichni hráči vidí, na koho se čeká
+    const initialActivePlayers = gameManager.getActivePlayers(room);
+    const initialWaitingFor = initialActivePlayers
+      .filter(p => !room.districtChoices[p.id])
+      .map(p => p.name);
+    io.to(code).emit('selection-progress', {
+      chosen: 0,
+      total: initialActivePlayers.length,
+      waitingFor: initialWaitingFor
+    });
+
     // Časovač — po 25s auto-přiřadit a přejít na otázku
     room.selectionTimer = setTimeout(() => {
       room.selectionTimer = null;
@@ -295,11 +310,16 @@ module.exports = function setupSocket(io) {
 
     console.log(`📋 Kolo ${questionData.round} v ${code}: Otázka [${questionData.question.type}]`);
 
+    // Sestavit mapu socketId → playerIndex pro barvení na klientu
+    const playerIndexMap = {};
+    room.players.forEach((p, i) => { playerIndexMap[p.id] = i; });
+
     // Poslat otázku všem hráčům (včetně jejich výběrů)
     io.to(code).emit('new-round', {
       round: questionData.round,
       question: questionData.question,
       districtChoices: questionData.districtChoices,
+      playerIndexMap,
       timeLimit: ROUND_TIME / 1000
     });
 
@@ -362,6 +382,9 @@ module.exports = function setupSocket(io) {
       });
       return;
     }
+
+    // Nastavit fázi na attack (důležité pro přímý přechod z finishRound přes switchToAttack)
+    room.phase = 'attack';
 
     // Oznámit všem, že začíná attack fáze
     io.to(code).emit('attack-phase-started');

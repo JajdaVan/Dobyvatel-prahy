@@ -356,13 +356,19 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
     }
   }
 
-  // --- Zvýrazni čtvrtě podle výběrů ---
-  function highlightDistrictChoices(districtChoices, myPlayerId) {
+  // --- Zvýrazni čtvrtě podle výběrů (s dynamickými barvami hráčů) ---
+  function highlightDistrictChoices(districtChoices, myPlayerId, playerIndexMap) {
     clearDistrictHighlight();
     for (const [socketId, districtId] of Object.entries(districtChoices)) {
       const el = document.getElementById(districtId);
       if (el) {
         el.classList.add('round-target');
+        // Dynamická barva podle hráče
+        const pIdx = playerIndexMap ? playerIndexMap[socketId] : 0;
+        const color = PLAYER_COLORS[pIdx] || PLAYER_COLORS[0];
+        const stroke = PLAYER_STROKES[pIdx] || PLAYER_STROKES[0];
+        el.style.setProperty('--target-color', color);
+        el.style.setProperty('--target-stroke', stroke);
         if (socketId === myPlayerId) {
           el.classList.add('selected-by-me');
         }
@@ -373,6 +379,8 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
   function clearDistrictHighlight() {
     document.querySelectorAll('.district.round-target, .district.selected, .district.selectable, .district.selected-by-me').forEach(d => {
       d.classList.remove('round-target', 'selected', 'selectable', 'selected-by-me');
+      d.style.removeProperty('--target-color');
+      d.style.removeProperty('--target-stroke');
     });
   }
 
@@ -701,8 +709,31 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
   // Progress výběru (kolik hráčů již vybralo)
   socket.on('selection-progress', (data) => {
     const statusEl = document.getElementById('selection-status');
-    if (statusEl && mySelectedDistrict) {
-      statusEl.textContent = `Čekám na ostatní... (${data.chosen}/${data.total})`;
+    const waitingEl = document.getElementById('selection-waiting');
+
+    if (statusEl) {
+      if (mySelectedDistrict) {
+        // Já jsem vybral — ukazuji status
+        if (data.waitingFor && data.waitingFor.length > 0) {
+          statusEl.textContent = `Čekám na ostatní... (${data.chosen}/${data.total})`;
+        } else {
+          statusEl.textContent = `Všichni vybrali! (${data.chosen}/${data.total})`;
+        }
+      }
+      // Pokud jsem ještě nevybral, ponechej "Klikni na zvýrazněnou čtvrt!"
+    }
+
+    // Vždy zobrazit seznam hráčů, na které se čeká
+    if (waitingEl) {
+      if (data.waitingFor && data.waitingFor.length > 0) {
+        waitingEl.innerHTML =
+          '<span class="waiting-label">⏳ Čeká se na:</span> ' +
+          data.waitingFor.map(name => `<span class="waiting-player-badge">${name}</span>`).join(' ');
+        waitingEl.style.display = 'block';
+      } else {
+        waitingEl.innerHTML = '<span class="waiting-label">✅ Všichni hráči vybrali!</span>';
+        waitingEl.style.display = 'block';
+      }
     }
   });
 
@@ -713,7 +744,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
     cleanupSelectionMode();
 
     // Zvýraznit všechny vybrané čtvrtě na mapě
-    highlightDistrictChoices(data.districtChoices, socket.id);
+    highlightDistrictChoices(data.districtChoices, socket.id, data.playerIndexMap);
 
     // Určit district pro quiz overlay tag (můj výběr)
     const myDistrict = data.districtChoices[socket.id] || mySelectedDistrict || Object.values(data.districtChoices)[0] || '';
@@ -832,7 +863,12 @@ const CIRCUMFERENCE = 2 * Math.PI * 34; // SVG timer ring
     console.log(`⚔️ Attack sub-kolo ${data.subRound}:`, data.attackState);
     cleanupAttackSelect();
 
-    highlightDistrict(data.attackState.district);
+    // Zvýrazni napadanou čtvrť
+    clearDistrictHighlight();
+    const targetEl = document.getElementById(data.attackState.district);
+    if (targetEl) {
+      targetEl.classList.add('round-target');
+    }
 
     setTimeout(() => {
       roundStartTime = Date.now();

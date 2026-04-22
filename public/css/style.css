@@ -985,6 +985,38 @@ body {
   border-color: var(--accent);
 }
 
+/* Selected answer — immediate feedback while waiting for others */
+.quiz-answer-btn.selected-answer {
+  background: rgba(245, 197, 66, 0.15);
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(245, 197, 66, 0.2), inset 0 0 0 1px rgba(245, 197, 66, 0.1);
+  transform: scale(1.02);
+  pointer-events: none;
+}
+
+.quiz-answer-btn.selected-answer .answer-key {
+  background: rgba(245, 197, 66, 0.3);
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.quiz-answer-btn.selected-answer .answer-text {
+  color: var(--gold);
+}
+
+/* When result comes in, correct+selected = green border stays, wrong+selected = red */
+.quiz-answer-btn.selected-answer.correct {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: #2ecc71;
+  box-shadow: 0 0 20px rgba(46, 204, 113, 0.25);
+}
+
+.quiz-answer-btn.selected-answer.wrong {
+  background: rgba(233, 69, 96, 0.2);
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(233, 69, 96, 0.25);
+}
+
 /* ===== Game Notification Toasts ===== */
 #game-notifications {
   position: fixed;
@@ -1346,21 +1378,22 @@ body {
 }
 
 /* ---- District Round Target (pulsating highlight on map) ---- */
+/* Uses dynamic --target-color and --target-stroke set per-element by JS */
 .district.round-target {
-  fill: var(--accent);
-  stroke: #fff;
+  fill: var(--target-color, var(--accent));
+  stroke: var(--target-stroke, #fff);
   stroke-width: 3;
-  filter: url(#glow) drop-shadow(0 0 14px var(--accent-glow));
+  filter: url(#glow) drop-shadow(0 0 14px var(--target-color, var(--accent-glow)));
   animation: pulseTarget 1.5s ease-in-out infinite;
 }
 
 @keyframes pulseTarget {
   0%, 100% {
-    filter: url(#glow) drop-shadow(0 0 10px var(--accent-glow));
+    filter: url(#glow) drop-shadow(0 0 10px var(--target-color, var(--accent-glow)));
     stroke-width: 3;
   }
   50% {
-    filter: url(#glow) drop-shadow(0 0 22px var(--accent-glow));
+    filter: url(#glow) drop-shadow(0 0 22px var(--target-color, var(--accent-glow)));
     stroke-width: 3.5;
   }
 }
@@ -1849,6 +1882,141 @@ body {
   color: var(--gold);
   margin-top: 0.15rem;
   text-shadow: 0 0 8px var(--gold-glow);
+}
+
+/* ===================================
+   Selection Overlay
+   =================================== */
+
+#selection-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 1.5rem;
+  pointer-events: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.selection-overlay-content {
+  background: var(--glass-bg);
+  border: 2px solid rgba(46, 204, 113, 0.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 1.2rem 2rem 1.4rem;
+  text-align: center;
+  box-shadow:
+    0 8px 40px rgba(46, 204, 113, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation: fadeInDown 0.4s ease-out;
+  pointer-events: auto;
+  max-width: 420px;
+  width: calc(100% - 2rem);
+}
+
+.selection-round {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #2ecc71;
+  background: rgba(46, 204, 113, 0.12);
+  border: 1px solid rgba(46, 204, 113, 0.25);
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.selection-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.2rem;
+}
+
+.selection-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.selection-timer-wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.selection-timer-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.selection-timer-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px var(--gold-glow);
+  min-width: 2ch;
+}
+
+.selection-status {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+/* ---- Waiting For Players Indicator ---- */
+.selection-waiting {
+  display: none;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(245, 197, 66, 0.06);
+  border: 1px solid rgba(245, 197, 66, 0.15);
+  border-radius: 10px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.waiting-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-right: 0.3rem;
+}
+
+.waiting-player-badge {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--gold);
+  background: rgba(245, 197, 66, 0.12);
+  border: 1px solid rgba(245, 197, 66, 0.25);
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  margin: 0.15rem 0.2rem;
+  animation: waitingPulse 2s ease-in-out infinite;
+}
+
+@keyframes waitingPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(245, 197, 66, 0);
+    border-color: rgba(245, 197, 66, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(245, 197, 66, 0.2);
+    border-color: rgba(245, 197, 66, 0.45);
+  }
 }
 
 /* ---- Play Again Button ---- */

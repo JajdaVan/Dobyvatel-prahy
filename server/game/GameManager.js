@@ -29,6 +29,8 @@ const WIN_THRESHOLD = 0.7; // 70 % mapy = vítězství
 const WIN_DISTRICT_COUNT = Math.ceil(DISTRICTS.length * WIN_THRESHOLD); // 11 z 15
 const ESTIMATE_CHANCE = 0.25; // 25 % šance na odhadovací otázku
 const ESTIMATE_TOLERANCE = 0.05; // 5 % povolená odchylka u estimate otázek
+const ESTIMATE_MIN_TOLERANCE = 1;  // Minimální absolutní odchylka (pro malá čísla jako 5, 6, 8)
+const ESTIMATE_MAX_TOLERANCE = 25; // Maximální absolutní odchylka (pro velká čísla jako letopočty)
 
 class GameManager {
   constructor() {
@@ -423,8 +425,8 @@ class GameManager {
       if (q.type === 'choice') {
         correctContestants = contestants.filter(c => c.answerData && c.answerData.correct);
       } else {
-        // Estimate — jen hráči s odchylkou do 5 % od správné hodnoty
-        const tolerance = Math.abs(q.correct) * ESTIMATE_TOLERANCE;
+        // Estimate — jen hráči s odchylkou v toleranci od správné hodnoty
+        const tolerance = this._estimateTolerance(q.correct);
         correctContestants = contestants.filter(c => c.answerData && c.answerData.diff <= tolerance);
       }
 
@@ -680,8 +682,8 @@ class GameManager {
       }
       // Oba špatně = nikdo (remíza, neboduje se)
     } else {
-      // Estimate — kdo je blíž (ale oba musí být do 5% tolerance)
-      const tolerance = Math.abs(q.correct) * ESTIMATE_TOLERANCE;
+      // Estimate — kdo je blíž (ale oba musí být v toleranci)
+      const tolerance = this._estimateTolerance(q.correct);
       const atkDiff = atkAnswer ? atkAnswer.diff : Infinity;
       const defDiff = defAnswer ? defAnswer.diff : Infinity;
       const atkOk = atkDiff <= tolerance;
@@ -777,6 +779,15 @@ class GameManager {
     }
 
     return result;
+  }
+
+  // Vypočítat toleranci pro estimate otázky
+  // Clamp(|correct| * 5%, min=1, max=25)
+  // - min=1 zajistí, že malá čísla (5, 6, 8) mají toleranci ±1
+  // - max=25 zajistí, že velká čísla (letopočty ~2000) nemají toleranci ±100
+  _estimateTolerance(correctValue) {
+    const raw = Math.abs(correctValue) * ESTIMATE_TOLERANCE;
+    return Math.max(Math.min(raw, ESTIMATE_MAX_TOLERANCE), ESTIMATE_MIN_TOLERANCE);
   }
 
   // Fisher-Yates shuffle
